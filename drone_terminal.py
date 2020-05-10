@@ -45,10 +45,20 @@ class FrontEnd(object):
 
         should_stop = False
         while not should_stop:
+
+            time_before = time.time()
             interrupt = droneController.run()
+            print("execution time of drone controller run: %s" % str(time.time()-time_before))
+
             if interrupt:
                 should_stop = True
+
+            # TODO streamline the video controller to speed up detection process. Otherwise it will slowdown the whole cycle
+
+            time_before = time.time()
             screen = pygame.surfarray.make_surface(videoController.run()) # create pygame screen
+            print("execution time of video controller run: %s" % str(time.time()-time_before))
+
             self.screen.blit(screen, (0, 0)) # put screen on
             pygame.display.update()
 

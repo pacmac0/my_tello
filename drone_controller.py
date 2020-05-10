@@ -39,6 +39,7 @@ class droneController:
             raise Exception("Could not start video stream")
 
     def run(self):
+        should_stop = False
         for event in self.user_io.event.get():
             if event.type == self.user_io.USEREVENT + 1:
                 self.update()
@@ -51,6 +52,7 @@ class droneController:
                     self.keydown(event.key)
             elif event.type == self.user_io.KEYUP:
                 self.keyup(event.key)
+        return should_stop
 
     def keydown(self, key):
         """ Update velocities based on key pressed
@@ -95,7 +97,7 @@ class droneController:
             self.send_rc_control = False
 
     def update(self):
-        """ Update routine. Send velocities to Tello."""
+        """ Update routine. Send velocities to Tello. """
         if self.send_rc_control:
             self.drone.send_rc_control(self.left_right_velocity, self.for_back_velocity, self.up_down_velocity,
                                        self.yaw_velocity)
