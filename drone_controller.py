@@ -73,12 +73,17 @@ class droneController:
         except:
             raise Exception("Could not init recognition models")
 
+<<<<<<< HEAD
     def run_controlles(self):
         self.update()
+=======
+    def run(self):
+>>>>>>> parent of a648fff... speed analyses
         for event in self.user_io.event.get():
             if event.type == self.user_io.QUIT:
                     self.should_stop = True
             elif event.type == self.user_io.KEYDOWN:
+<<<<<<< HEAD
                     if event.key == self.user_io.K_ESCAPE:
                         self.should_stop = True
                     elif event.key == self.user_io.K_f: # toggle autonomous mode
@@ -116,6 +121,14 @@ class droneController:
                 elif event.type == self.user_io.KEYUP:
                     self.keyup(event.key)
         return self.should_stop
+=======
+                if event.key == self.user_io.K_ESCAPE:
+                    should_stop = True
+                else:
+                    self.keydown(event.key)
+            elif event.type == self.user_io.KEYUP:
+                self.keyup(event.key)
+>>>>>>> parent of a648fff... speed analyses
 
     def keydown(self, key):
         """ Update velocities based on key pressed
@@ -165,7 +178,7 @@ class droneController:
             self.send_rc_control = False
 
     def update(self):
-        """ Update routine. Send velocities to Tello. """
+        """ Update routine. Send velocities to Tello."""
         if self.send_rc_control:
             self.drone.send_rc_control(self.left_right_velocity, self.for_back_velocity, self.up_down_velocity,
                                        self.yaw_velocity)

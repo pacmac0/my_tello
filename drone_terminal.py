@@ -36,6 +36,7 @@ class FrontEnd(object):
         
         should_stop = False
         while not should_stop:
+<<<<<<< HEAD
             interrupt = droneController.run_controlles()
             if interrupt:
                 should_stop = True
@@ -44,6 +45,12 @@ class FrontEnd(object):
             screen = pygame.surfarray.make_surface(droneController.run_video()) # create pygame screen
             print("new frame available")
 
+=======
+            interrupt = droneController.run()
+            if interrupt:
+                should_stop = True
+            screen = pygame.surfarray.make_surface(videoController.run()) # create pygame screen
+>>>>>>> parent of a648fff... speed analyses
             self.screen.blit(screen, (0, 0)) # put screen on
             pygame.display.update()
 
