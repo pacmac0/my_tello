@@ -1,5 +1,9 @@
 from djitellopy import Tello
 import pygame
+import cv2
+import numpy as np
+import concurrent.futures
+
 class droneController:
     def __init__(self, io):
         # Init Tello object that interacts with the Tello drone
@@ -12,13 +16,16 @@ class droneController:
         self.yaw_velocity = 0
         self.speed = 10
 
+        # drone controle toggles
+        self.should_stop = False
+        self.autonomous_mode = False
         self.send_rc_control = False
 
         # Speed of the drone
         self.S = 60
         # Frames per second of the pygame window display
         self.FPS = 60
-        self.user_io = io #pygame control
+        self.user_io = io #pygame control to get input
 
         try:
             self.drone.connect()
@@ -39,20 +46,52 @@ class droneController:
             raise Exception("Could not start video stream")
 
     def run(self):
-        should_stop = False
+        self.update()
+        if frame_read.stopped:
+                frame_read.stop()
+                return
+        
         for event in self.user_io.event.get():
-            if event.type == self.user_io.USEREVENT + 1:
-                self.update()
-            elif event.type == self.user_io.QUIT:
-                should_stop = True
+            if event.type == self.user_io.QUIT:
+                    self.should_stop = True
             elif event.type == self.user_io.KEYDOWN:
-                if event.key == self.user_io.K_ESCAPE:
-                    should_stop = True
-                else:
-                    self.keydown(event.key)
-            elif event.type == self.user_io.KEYUP:
-                self.keyup(event.key)
-        return should_stop
+                    if event.key == self.user_io.K_ESCAPE:
+                        self.should_stop = True
+                    elif event.key == self.user_io.K_f: # toggle autonomous mode
+                        self.autonomous_mode = not self.autonomous_mode
+                        if self.autonomous_mode:
+                            print("Autonomous flight mode active!")
+                        else:
+                            print("Autonomous flight mode deactivated!")
+            
+        
+            if self.autonomous_mode:
+                if event.type == self.user_io.USEREVENT + 1:
+                    self.update()
+                elif event.type == self.user_io.QUIT:
+                    self.should_stop = True
+                elif event.type == self.user_io.KEYDOWN:
+                    if event.key == self.user_io.K_ESCAPE:
+                        self.should_stop = True
+                    elif event.key == self.user_io.K_f: # toggle autonomous mode
+                        self.autonomous_mode = not self.autonomous_mode
+                        print("Autonomous flight mode deactivated!")
+                
+                
+
+            else:
+                if event.type == self.user_io.USEREVENT + 1:
+                    self.update()
+                elif event.type == self.user_io.QUIT:
+                    self.should_stop = True
+                elif event.type == self.user_io.KEYDOWN:
+                    if event.key == self.user_io.K_ESCAPE:
+                        self.should_stop = True
+                    else:
+                        self.keydown(event.key)
+                elif event.type == self.user_io.KEYUP:
+                    self.keyup(event.key)
+        return self.should_stop
 
     def keydown(self, key):
         """ Update velocities based on key pressed
@@ -75,6 +114,11 @@ class droneController:
             self.yaw_velocity = -self.S
         elif key == self.user_io.K_d:  # set yaw clockwise velocity
             self.yaw_velocity = self.S
+        elif key == self.user_io.K_b: # get battery level
+            print("%s%% battery left" %self.battery())
+        elif key == self.user_io.K_f: # toggle autonomous mode
+            self.autonomous_mode = not self.autonomous_mode
+            print("Autonomous flight mode active!")
 
     def keyup(self, key):
         """ Update velocities based on key released

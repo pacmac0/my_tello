@@ -35,30 +35,15 @@ class FrontEnd(object):
             droneController = drone_controller.droneController(pygame)
         except:
             raise Exception("Couldn't initialize drone controller")
-        # init video controller with camera device
-        try:
-            videoController = video_controller.videoController(droneController.drone)
-        except:
-            raise Exception("Couldn't initialize video controller")
-
-        print("%s %% battery left" %droneController.battery())
-
+        
         should_stop = False
         while not should_stop:
-
-            time_before = time.time()
             interrupt = droneController.run()
-            print("execution time of drone controller run: %s" % str(time.time()-time_before))
-
             if interrupt:
                 should_stop = True
 
-            # TODO streamline the video controller to speed up detection process. Otherwise it will slowdown the whole cycle
-
-            time_before = time.time()
-            screen = pygame.surfarray.make_surface(videoController.run()) # create pygame screen
-            print("execution time of video controller run: %s" % str(time.time()-time_before))
-
+            screen = pygame.surfarray.make_surface(droneController.get_frame()) # create pygame screen
+            
             self.screen.blit(screen, (0, 0)) # put screen on
             pygame.display.update()
 
