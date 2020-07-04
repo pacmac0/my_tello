@@ -3,8 +3,6 @@ import cv2
 import pygame
 import numpy as np
 import time
-
-import video_controller
 import drone_controller
 
 class FrontEnd(object):
@@ -38,12 +36,14 @@ class FrontEnd(object):
         
         should_stop = False
         while not should_stop:
-            interrupt = droneController.run()
+            interrupt = droneController.run_controlles()
             if interrupt:
                 should_stop = True
 
-            screen = pygame.surfarray.make_surface(droneController.get_frame()) # create pygame screen
-            
+            print("getting new frame")
+            screen = pygame.surfarray.make_surface(droneController.run_video()) # create pygame screen
+            print("new frame available")
+
             self.screen.blit(screen, (0, 0)) # put screen on
             pygame.display.update()
 

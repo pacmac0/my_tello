@@ -27,6 +27,9 @@ class videoController:
         """
 
     def get_frame(self):
+        """
+        puts together the frame processing pipeline and returns the frame
+        """
         self.frame = self.frame_read.frame
         self.detect()
         self.clearImage()

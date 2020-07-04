@@ -42,15 +42,39 @@ class droneController:
             raise Exception("Could not stop video stream")
         try:
             self.drone.streamon()
+            self.frame_read = self.drone.get_frame_read()
         except:
             raise Exception("Could not start video stream")
+        # init video processing
+        try:
+            # Set up recognition module
+            try:
+                self.face_cascade = cv2.CascadeClassifier()
+                self.face_cascade.load(cv2.samples.findFile('cascades/data/haarcascade_frontalface_alt2.xml'))
+            except:
+                raise Exception("loading face cascade failed")
+            """
+            try:
+                self.full_body_cascade = cv2.CascadeClassifier()
+                self.full_body_cascade.load(cv2.samples.findFile('cascades/data/haarcascade_fullbody.xml')):
+            except:
+                raise Exception("loading full body cascade failed")
+            try:
+                self.profile_face_cascade = cv2.CascadeClassifier()
+                self.profile_face_cascade.load(cv2.samples.findFile('cascades/data/haarcascade_profileface.xml')):
+            except:
+                raise Exception("loading face profile cascade failed")
+            try:
+                self.upper_body_cascade = cv2.CascadeClassifier()
+                self.upper_body_cascade.load(cv2.samples.findFile('cascades/data/haarcascade_upperbody.xml')):
+            except:
+                raise Exception("loading upper body cascade failed")
+            """
+        except:
+            raise Exception("Could not init recognition models")
 
-    def run(self):
+    def run_controlles(self):
         self.update()
-        if frame_read.stopped:
-                frame_read.stop()
-                return
-        
         for event in self.user_io.event.get():
             if event.type == self.user_io.QUIT:
                     self.should_stop = True
@@ -145,6 +169,43 @@ class droneController:
         if self.send_rc_control:
             self.drone.send_rc_control(self.left_right_velocity, self.for_back_velocity, self.up_down_velocity,
                                        self.yaw_velocity)
+
+    def run_video(self):
+        """
+        puts together the frame processing pipeline and returns the frame
+        """
+        if self.frame_read.stopped:
+                self.frame_read.stop()
+                self.should_stop = True
+                
+        self.frame = self.frame_read.frame
+        self.detect()
+        self.clearImage()
+        return self.frame
+
+    def detect(self):
+        """
+        detection and video manipulation (drawing)
+        """
+        gray  = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+        faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.5, minNeighbors=2)
+        """
+        upper_bodys = self.upper_body_cascade.detectMultiScale(gray, scaleFactor=1.5, minNeighbors=2)
+        
+        if len(upper_bodys) != 0:
+            for (x,y,w,h) in upper_bodys:
+                cv2.rectangle(self.frame, (x, y), (x+w, y+h),(0, 255, 0), 2)
+        """
+        if len(faces) != 0:
+            for (x,y,w,h) in faces:
+                center = (x + w//2, y + h//2)
+                cv2.ellipse(self.frame, center, (w//2, h//2), 0, 0, 360, (255, 0, 255))
+
+    def clearImage(self):
+        # image clearance
+        self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB) # color converion
+        self.frame = np.rot90(self.frame) # rotate image correct
+        self.frame = np.flipud(self.frame)
 
     def battery(self):
         return self.drone.get_battery()[:2]
