@@ -36,22 +36,26 @@ class FrontEnd(object):
         
         should_stop = False
         while not should_stop:
-<<<<<<< HEAD
-            interrupt = droneController.run_controlles()
-            if interrupt:
-                should_stop = True
 
-            print("getting new frame")
-            screen = pygame.surfarray.make_surface(droneController.run_video()) # create pygame screen
-            print("new frame available")
+            for event in pygame.event.get():
+                if event.type == pygame.USEREVENT + 1:
+                        droneController.update()
+                elif event.type == pygame.QUIT:
+                    should_stop = True
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        should_stop = True
+                    else:
+                        droneController.keydown(event.key)
+                elif event.type == pygame.KEYUP:
+                    droneController.keyup(event.key)
 
-=======
-            interrupt = droneController.run()
-            if interrupt:
-                should_stop = True
-            screen = pygame.surfarray.make_surface(videoController.run()) # create pygame screen
->>>>>>> parent of a648fff... speed analyses
-            self.screen.blit(screen, (0, 0)) # put screen on
+            if droneController.frame_read.stopped:
+                droneController.frame_read.stop()
+                print("Frameread stopped land safely!")
+            
+            frame = pygame.surfarray.make_surface(droneController.get_frame()) # create pygame screen
+            self.screen.blit(frame, (0, 0)) # put screen on
             pygame.display.update()
 
             time.sleep(1 / droneController.FPS)

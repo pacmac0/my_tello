@@ -21,8 +21,11 @@ class droneController:
         self.autonomous_mode = False
         self.send_rc_control = False
 
+        # Speed of the drone
+        self.S = 60
         # Frames per second of the pygame window display
         self.FPS = 60
+        self.user_io = io #pygame control to get input
 
         try:
             self.drone.connect()
@@ -31,7 +34,7 @@ class droneController:
         try:
             self.drone.set_speed(self.speed)
         except:
-            raise Exception("setting speed not possible")
+            raise Exception("Not set speed to lowest possible")
         # In case streaming is on. This happens when we quit this program without the escape key.
         try:
             self.drone.streamoff()
@@ -70,31 +73,86 @@ class droneController:
         except:
             raise Exception("Could not init recognition models")
 
-    
+    def run_controlles(self):
+        self.update()
+
+    def run(self):
+
+        for event in self.user_io.event.get():
+            if event.type == self.user_io.QUIT:
+                    self.interrupt = True
+            elif event.type == self.user_io.KEYDOWN:
+
+                    if event.key == self.user_io.K_ESCAPE:
+                        self.interrupt = True
+                    elif event.key == self.user_io.K_f: # toggle autonomous mode
+                        self.autonomous_mode = not self.autonomous_mode
+                        if self.autonomous_mode:
+                            print("Autonomous flight mode active!")
+                        else:
+                            print("Autonomous flight mode deactivated!")
+            
+        
+            if self.autonomous_mode:
+                if event.type == self.user_io.USEREVENT + 1:
+                    self.update()
+                elif event.type == self.user_io.QUIT:
+                    self.interrupt = True
+                elif event.type == self.user_io.KEYDOWN:
+                    if event.key == self.user_io.K_ESCAPE:
+                        self.interrupt = True
+                    elif event.key == self.user_io.K_f: # toggle autonomous mode
+                        self.autonomous_mode = not self.autonomous_mode
+                        print("Autonomous flight mode deactivated!")
+                
+                
+
+            else:
+                if event.type == self.user_io.USEREVENT + 1:
+                    self.update()
+                elif event.type == self.user_io.QUIT:
+                    self.interrupt = True
+                elif event.type == self.user_io.KEYDOWN:
+                    if event.key == self.user_io.K_ESCAPE:
+                        self.interrupt = True
+                    else:
+                        self.keydown(event.key)
+                elif event.type == self.user_io.KEYUP:
+                    self.keyup(event.key)
+        return self.interrupt
+=======
+                if event.key == self.user_io.K_ESCAPE:
+                    interrupt = True
+                else:
+                    self.keydown(event.key)
+            elif event.type == self.user_io.KEYUP:
+                self.keyup(event.key)
+>>>>>>> parent of a648fff... speed analyses
+
     def keydown(self, key):
         """ Update velocities based on key pressed
         Arguments:
             key: pygame key
         """
-        if key == pygame.user_io.K_UP:  # set forward velocity
-            self.for_back_velocity = self.speed
-        elif key == pygame.user_io.K_DOWN:  # set backward velocity
-            self.for_back_velocity = -self.speed
-        elif key == pygame.user_io.K_LEFT:  # set left velocity
-            self.left_right_velocity = -self.speed
-        elif key == pygame.user_io.K_RIGHT:  # set right velocity
-            self.left_right_velocity = self.speed
-        elif key == pygame.user_io.K_w:  # set up velocity
-            self.up_down_velocity = self.speed
-        elif key == pygame.user_io.K_s:  # set down velocity
-            self.up_down_velocity = -self.speed
-        elif key == pygame.user_io.K_a:  # set yaw counter clockwise velocity
-            self.yaw_velocity = -self.speed
-        elif key == pygame.user_io.K_d:  # set yaw clockwise velocity
-            self.yaw_velocity = self.speed
-        elif key == pygame.user_io.K_b: # get battery level
+        if key == self.user_io.K_UP:  # set forward velocity
+            self.for_back_velocity = self.S
+        elif key == self.user_io.K_DOWN:  # set backward velocity
+            self.for_back_velocity = -self.S
+        elif key == self.user_io.K_LEFT:  # set left velocity
+            self.left_right_velocity = -self.S
+        elif key == self.user_io.K_RIGHT:  # set right velocity
+            self.left_right_velocity = self.S
+        elif key == self.user_io.K_w:  # set up velocity
+            self.up_down_velocity = self.S
+        elif key == self.user_io.K_s:  # set down velocity
+            self.up_down_velocity = -self.S
+        elif key == self.user_io.K_a:  # set yaw counter clockwise velocity
+            self.yaw_velocity = -self.S
+        elif key == self.user_io.K_d:  # set yaw clockwise velocity
+            self.yaw_velocity = self.S
+        elif key == self.user_io.K_b: # get battery level
             print("%s%% battery left" %self.battery())
-        elif key == pygame.user_io.K_f: # toggle autonomous mode
+        elif key == self.user_io.K_f: # toggle autonomous mode
             self.autonomous_mode = not self.autonomous_mode
             print("Autonomous flight mode active!")
 
@@ -103,18 +161,18 @@ class droneController:
         Arguments:
             key: pygame key
         """
-        if key == pygame.user_io.K_UP or key == pygame.user_io.K_DOWN:  # set zero forward/backward velocity
+        if key == self.user_io.K_UP or key == self.user_io.K_DOWN:  # set zero forward/backward velocity
             self.for_back_velocity = 0
-        elif key == pygame.user_io.K_LEFT or key == pygame.user_io.K_RIGHT:  # set zero left/right velocity
+        elif key == self.user_io.K_LEFT or key == self.user_io.K_RIGHT:  # set zero left/right velocity
             self.left_right_velocity = 0
-        elif key == pygame.user_io.K_w or key == pygame.user_io.K_s:  # set zero up/down velocity
+        elif key == self.user_io.K_w or key == self.user_io.K_s:  # set zero up/down velocity
             self.up_down_velocity = 0
-        elif key == pygame.user_io.K_a or key == pygame.user_io.K_d:  # set zero yaw velocity
+        elif key == self.user_io.K_a or key == self.user_io.K_d:  # set zero yaw velocity
             self.yaw_velocity = 0
-        elif key == pygame.user_io.K_t:  # takeoff
+        elif key == self.user_io.K_t:  # takeoff
             self.drone.takeoff()
             self.send_rc_control = True
-        elif key == pygame.user_io.K_l:  # land
+        elif key == self.user_io.K_l:  # land
             self.drone.land()
             self.send_rc_control = False
 
@@ -124,11 +182,16 @@ class droneController:
             self.drone.send_rc_control(self.left_right_velocity, self.for_back_velocity, self.up_down_velocity,
                                        self.yaw_velocity)
 
-    def get_frame(self):
+    def run_video(self):
         """
         puts together the frame processing pipeline and returns the frame
         """
-        # self.detect()
+        if self.frame_read.stopped:
+                self.frame_read.stop()
+                self.interrupt = True
+                
+        self.frame = self.frame_read.frame
+        self.detect()
         self.clearImage()
         return self.frame
 
@@ -152,7 +215,7 @@ class droneController:
 
     def clearImage(self):
         # image clearance
-        self.frame = cv2.cvtColor(self.frame_read.frame, cv2.COLOR_BGR2RGB) # color converion
+        self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB) # color converion
         self.frame = np.rot90(self.frame) # rotate image correct
         self.frame = np.flipud(self.frame)
 
