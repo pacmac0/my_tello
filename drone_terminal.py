@@ -30,7 +30,7 @@ class FrontEnd(object):
     def run(self):
         # init movement controller with drone device
         try:
-            droneController = drone_controller.droneController(pygame)
+            droneController = drone_controller.droneController()
         except:
             raise Exception("Couldn't initialize drone controller")
         

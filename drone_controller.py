@@ -5,7 +5,7 @@ import numpy as np
 import concurrent.futures
 
 class droneController:
-    def __init__(self, io):
+    def __init__(self):
         # Init Tello object that interacts with the Tello drone
         self.drone = Tello()
 
@@ -14,7 +14,8 @@ class droneController:
         self.left_right_velocity = 0
         self.up_down_velocity = 0
         self.yaw_velocity = 0
-        self.speed = 10
+        self.speed = 10 # initial speed
+        self.S = 60 # speed of the drone when moving
 
         # drone controle toggles
         self.interrupt = False
@@ -76,25 +77,25 @@ class droneController:
         Arguments:
             key: pygame key
         """
-        if key == pygame.user_io.K_UP:  # set forward velocity
-            self.for_back_velocity = self.speed
-        elif key == pygame.user_io.K_DOWN:  # set backward velocity
-            self.for_back_velocity = -self.speed
-        elif key == pygame.user_io.K_LEFT:  # set left velocity
-            self.left_right_velocity = -self.speed
-        elif key == pygame.user_io.K_RIGHT:  # set right velocity
-            self.left_right_velocity = self.speed
-        elif key == pygame.user_io.K_w:  # set up velocity
-            self.up_down_velocity = self.speed
-        elif key == pygame.user_io.K_s:  # set down velocity
-            self.up_down_velocity = -self.speed
-        elif key == pygame.user_io.K_a:  # set yaw counter clockwise velocity
-            self.yaw_velocity = -self.speed
-        elif key == pygame.user_io.K_d:  # set yaw clockwise velocity
-            self.yaw_velocity = self.speed
-        elif key == pygame.user_io.K_b: # get battery level
+        if key == pygame.K_UP:  # set forward velocity
+            self.for_back_velocity = self.S
+        elif key == pygame.K_DOWN:  # set backward velocity
+            self.for_back_velocity = -self.S
+        elif key == pygame.K_LEFT:  # set left velocity
+            self.left_right_velocity = -self.S
+        elif key == pygame.K_RIGHT:  # set right velocity
+            self.left_right_velocity = self.S
+        elif key == pygame.K_w:  # set up velocity
+            self.up_down_velocity = self.S
+        elif key == pygame.K_s:  # set down velocity
+            self.up_down_velocity = -self.S
+        elif key == pygame.K_a:  # set yaw counter clockwise velocity
+            self.yaw_velocity = -self.S
+        elif key == pygame.K_d:  # set yaw clockwise velocity
+            self.yaw_velocity = self.S
+        elif key == pygame.K_b: # get battery level
             print("%s%% battery left" %self.battery())
-        elif key == pygame.user_io.K_f: # toggle autonomous mode
+        elif key == pygame.K_f: # toggle autonomous mode
             self.autonomous_mode = not self.autonomous_mode
             print("Autonomous flight mode active!")
 
@@ -103,18 +104,18 @@ class droneController:
         Arguments:
             key: pygame key
         """
-        if key == pygame.user_io.K_UP or key == pygame.user_io.K_DOWN:  # set zero forward/backward velocity
+        if key == pygame.K_UP or key == pygame.K_DOWN:  # set zero forward/backward velocity
             self.for_back_velocity = 0
-        elif key == pygame.user_io.K_LEFT or key == pygame.user_io.K_RIGHT:  # set zero left/right velocity
+        elif key == pygame.K_LEFT or key == pygame.K_RIGHT:  # set zero left/right velocity
             self.left_right_velocity = 0
-        elif key == pygame.user_io.K_w or key == pygame.user_io.K_s:  # set zero up/down velocity
+        elif key == pygame.K_w or key == pygame.K_s:  # set zero up/down velocity
             self.up_down_velocity = 0
-        elif key == pygame.user_io.K_a or key == pygame.user_io.K_d:  # set zero yaw velocity
+        elif key == pygame.K_a or key == pygame.K_d:  # set zero yaw velocity
             self.yaw_velocity = 0
-        elif key == pygame.user_io.K_t:  # takeoff
+        elif key == pygame.K_t:  # takeoff
             self.drone.takeoff()
             self.send_rc_control = True
-        elif key == pygame.user_io.K_l:  # land
+        elif key == pygame.K_l:  # land
             self.drone.land()
             self.send_rc_control = False
 
@@ -128,7 +129,8 @@ class droneController:
         """
         puts together the frame processing pipeline and returns the frame
         """
-        # self.detect()
+        self.frame = self.frame_read.frame
+        self.detect()
         self.clearImage()
         return self.frame
 
@@ -152,7 +154,7 @@ class droneController:
 
     def clearImage(self):
         # image clearance
-        self.frame = cv2.cvtColor(self.frame_read.frame, cv2.COLOR_BGR2RGB) # color converion
+        self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB) # color converion
         self.frame = np.rot90(self.frame) # rotate image correct
         self.frame = np.flipud(self.frame)
 
