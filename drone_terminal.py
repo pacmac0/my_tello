@@ -35,6 +35,7 @@ class FrontEnd(object):
             raise Exception("Couldn't initialize drone controller")
         
         should_stop = False
+        autonomous = False
         while not should_stop:
 
             for event in pygame.event.get():
@@ -48,7 +49,12 @@ class FrontEnd(object):
                     else:
                         droneController.keydown(event.key)
                 elif event.type == pygame.KEYUP:
-                    droneController.keyup(event.key)
+                    autonomous = droneController.keyup(event.key)
+            
+            # autonomous flight correction
+            if autonomous:
+                droneController.auto_flight()
+                droneController.update()
 
             if droneController.frame_read.stopped:
                 droneController.frame_read.stop()

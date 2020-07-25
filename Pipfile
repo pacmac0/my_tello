@@ -9,6 +9,7 @@ pylint = "*"
 [packages]
 djitellopy = "*"
 numpy = "*"
+time = "*"
 
 [requires]
 python_version = "3.7"
